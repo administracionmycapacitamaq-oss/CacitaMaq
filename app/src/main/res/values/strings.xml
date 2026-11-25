@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Capacitamaq</string>
+    <string name="brand_subtitle">Panel de certificaciones</string>
+    <string name="brand_tagline">Capacitación minera y operacional · Aprende, entrena y desarrolla tus habilidades.</string>
+    <string name="auth_title">CapacitaMaq</string>
+    <string name="auth_brand_subtitle">Centro de Capacitaciones y Entrenamiento Minero</string>
+    <string name="auth_subtitle">Inicia sesión con tu cuenta Google corporativa para gestionar certificados, códigos QR y verificaciones en tiempo real.</string>
+    <string name="sign_in_google">Iniciar sesión con Google</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="nav_dashboard">Mis códigos QR</string>
+    <string name="nav_create">Crear</string>
+    <string name="nav_analytics">Analítica</string>
+    <string name="nav_students">Alumnos</string>
+    <string name="nav_verify">Verificar QR</string>
+    <string name="cd_company_logo">Logotipo de Capacitamaq</string>
+    <string name="cd_company_seal">Sello circular de Capacitamaq</string>
+    <string name="cd_company_banner">Banner de capacitación minera Capacitamaq</string>
+    <string name="cd_qr_code">Código QR individual de certificación</string>
+    <string name="cd_operator_photo">Foto del operador certificador</string>
+    <string name="cd_back">Volver</string>
+</resources>

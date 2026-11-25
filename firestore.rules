@@ -1,0 +1,297 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny all access unless explicitly permitted
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isOfficialAdmin() {
+      return isSignedIn() &&
+             request.auth.token.email != null &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email.lower() == 'administracionmycapacitamaq@gmail.com';
+    }
+
+    function isApprovedStudent() {
+      return isSignedIn() &&
+             request.auth.token.email != null &&
+             request.auth.token.email_verified == true &&
+             exists(/databases/$(database)/documents/student_profiles/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/student_profiles/$(request.auth.uid)).data.verificationStatus == 'approved' &&
+             get(/databases/$(database)/documents/student_profiles/$(request.auth.uid)).data.email == request.auth.token.email.lower();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isHexColor(value) {
+      return value is string && value.size() == 7 && value.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function isOptionalString(data, key, maxLen) {
+      return !(key in data) || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    function isOptionalHex(data, key) {
+      return !(key in data) || isHexColor(data[key]);
+    }
+
+    function isValidCertificate(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.certificateCode is string && data.certificateCode.size() >= 1 && data.certificateCode.size() <= 100 &&
+             data.courseName is string && data.courseName.size() >= 1 && data.courseName.size() <= 120 &&
+             data.certificateType is string && data.certificateType.size() >= 1 && data.certificateType.size() <= 80 &&
+             data.studentName is string && data.studentName.size() >= 1 && data.studentName.size() <= 100 &&
+             isOptionalString(data, 'studentRut', 24) &&
+             isOptionalString(data, 'studentEmail', 120) &&
+             isOptionalString(data, 'verifiedByAdminEmail', 120) &&
+             data.issuer is string && data.issuer.size() >= 1 && data.issuer.size() <= 100 &&
+             data.issuedAt is string && data.issuedAt.size() >= 8 && data.issuedAt.size() <= 20 &&
+             data.status is string && data.status in ['active', 'pending', 'invalid'] &&
+             data.scanCount is int && data.scanCount >= 0 &&
+             isOptionalString(data, 'description', 400) &&
+             isOptionalString(data, 'operatorName', 100) &&
+             isOptionalString(data, 'operatorRole', 100) &&
+             isOptionalString(data, 'operatorIdentifier', 80) &&
+             isOptionalString(data, 'equipment', 100) &&
+             isOptionalString(data, 'expiresAt', 20) &&
+             isOptionalString(data, 'issuerUrl', 300) &&
+             isOptionalString(data, 'whatsapp', 40) &&
+             isOptionalString(data, 'email', 120) &&
+             isOptionalHex(data, 'themeColor') &&
+             isOptionalHex(data, 'backgroundColor') &&
+             isOptionalHex(data, 'cardColor') &&
+             (!('fontChoice' in data) || (data.fontChoice is string && data.fontChoice in ['Manrope', 'DM Sans', 'Arial', 'Georgia'])) &&
+             (!('template' in data) || (data.template is string && data.template in ['classic', 'modern', 'minimal'])) &&
+             isOptionalHex(data, 'qrColor') &&
+             (!('qrPattern' in data) || (data.qrPattern is string && data.qrPattern in ['square', 'soft', 'frame'])) &&
+             isOptionalString(data, 'qrCaption', 50) &&
+             isOptionalString(data, 'logoPath', 300) &&
+             isOptionalString(data, 'companyImagePath', 300) &&
+             isOptionalString(data, 'operatorPhotoPath', 300);
+    }
+
+    match /certificates/{certificateId} {
+      allow get: if isOfficialAdmin() || (
+        isApprovedStudent() &&
+        isValidId(certificateId) &&
+        resource.data.status == 'active' &&
+        resource.data.studentEmail is string &&
+        resource.data.studentEmail == request.auth.token.email.lower()
+      );
+
+      allow list: if isOfficialAdmin() || (
+        isApprovedStudent() &&
+        resource.data.status == 'active' &&
+        resource.data.studentEmail is string &&
+        resource.data.studentEmail == request.auth.token.email.lower()
+      );
+
+      allow create: if isOfficialAdmin() &&
+                       isValidId(certificateId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'certificateCode', 'courseName', 'certificateType',
+                         'studentName', 'issuer', 'issuedAt', 'status', 'scanCount',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'certificateCode', 'courseName', 'description',
+                         'studentName', 'studentRut', 'studentEmail', 'verifiedByAdminEmail',
+                         'certificateType', 'operatorName', 'operatorRole',
+                         'operatorIdentifier', 'equipment', 'issuer', 'issuedAt',
+                         'expiresAt', 'status', 'issuerUrl', 'whatsapp', 'email',
+                         'themeColor', 'backgroundColor', 'cardColor', 'fontChoice',
+                         'template', 'qrColor', 'qrPattern', 'qrCaption', 'logoPath',
+                         'companyImagePath', 'operatorPhotoPath', 'scanCount',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidCertificate(incoming());
+
+      allow update: if isOfficialAdmin() &&
+                       isValidId(certificateId) &&
+                       isValidCertificate(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'certificateCode', 'courseName', 'description', 'studentName',
+                           'studentRut', 'studentEmail', 'verifiedByAdminEmail',
+                           'certificateType', 'operatorName', 'operatorRole',
+                           'operatorIdentifier', 'equipment', 'issuer', 'issuedAt',
+                           'expiresAt', 'status', 'issuerUrl', 'whatsapp', 'email',
+                           'themeColor', 'backgroundColor', 'cardColor', 'fontChoice',
+                           'template', 'qrColor', 'qrPattern', 'qrCaption', 'logoPath',
+                           'companyImagePath', 'operatorPhotoPath', 'updatedAt'
+                         ]) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['scanCount', 'updatedAt']) &&
+                           incoming().scanCount == existing().scanCount + 1
+                         ) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['studentEmail', 'studentRut', 'verifiedByAdminEmail', 'updatedAt'])
+                       );
+
+      allow delete: if isOfficialAdmin() && isValidId(certificateId);
+    }
+
+    function isValidStudentProfile(data) {
+      return data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 120 &&
+             data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+             data.rut is string && data.rut.size() >= 5 && data.rut.size() <= 24 &&
+             data.verificationStatus is string && data.verificationStatus in ['pending', 'approved', 'rejected'] &&
+             data.approvedByEmail is string && data.approvedByEmail.size() <= 120 &&
+             isOptionalString(data, 'adminNote', 300);
+    }
+
+    match /student_profiles/{userId} {
+      allow get: if isOfficialAdmin() || isOwner(userId);
+      allow list: if isOfficialAdmin();
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       request.auth.token.email != null &&
+                       request.auth.token.email_verified == true &&
+                       incoming().keys().hasAll([
+                         'uid', 'email', 'fullName', 'rut',
+                         'verificationStatus', 'approvedByEmail',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'uid', 'email', 'fullName', 'rut',
+                         'verificationStatus', 'approvedByEmail', 'adminNote',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().uid == request.auth.uid &&
+                       incoming().email == request.auth.token.email.lower() &&
+                       incoming().verificationStatus == 'pending' &&
+                       incoming().approvedByEmail == '' &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidStudentProfile(incoming());
+
+      allow update: if isValidId(userId) &&
+                       isValidStudentProfile(incoming()) &&
+                       incoming().uid == existing().uid &&
+                       incoming().email == existing().email &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       (
+                         (
+                           isOfficialAdmin() &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'fullName', 'rut', 'verificationStatus', 'approvedByEmail', 'adminNote', 'updatedAt'
+                           ])
+                         ) ||
+                         (
+                           isOwner(userId) &&
+                           incoming().verificationStatus == 'pending' &&
+                           incoming().approvedByEmail == '' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'fullName', 'rut', 'verificationStatus', 'approvedByEmail', 'adminNote', 'updatedAt'
+                           ])
+                         )
+                       );
+
+      allow delete: if isOfficialAdmin() && isValidId(userId);
+    }
+
+    match /app_config/{configId} {
+      allow get: if isSignedIn() && configId == 'verifier';
+      allow list: if isOfficialAdmin();
+      allow create, update: if isOfficialAdmin() &&
+                               configId == 'verifier' &&
+                               incoming().keys().hasAll(['verifierBaseUrl', 'updatedByEmail', 'updatedAt']) &&
+                               incoming().keys().hasOnly(['verifierBaseUrl', 'updatedByEmail', 'updatedAt']) &&
+                               incoming().verifierBaseUrl is string &&
+                               incoming().verifierBaseUrl.size() <= 300 &&
+                               incoming().updatedByEmail == 'administracionmycapacitamaq@gmail.com' &&
+                               incoming().updatedAt is timestamp &&
+                               incoming().updatedAt <= request.time;
+      allow delete: if isOfficialAdmin();
+    }
+
+    function isValidPublicCertificate(data, code) {
+      return data.certificateCode is string && data.certificateCode == code &&
+             data.certificateCode.size() >= 1 && data.certificateCode.size() <= 100 &&
+             data.courseName is string && data.courseName.size() >= 1 && data.courseName.size() <= 120 &&
+             data.studentName is string && data.studentName.size() >= 1 && data.studentName.size() <= 100 &&
+             isOptionalString(data, 'studentRut', 24) &&
+             data.certificateType is string && data.certificateType.size() >= 1 && data.certificateType.size() <= 80 &&
+             data.issuer is string && data.issuer.size() >= 1 && data.issuer.size() <= 100 &&
+             data.issuedAt is string && data.issuedAt.size() >= 8 && data.issuedAt.size() <= 20 &&
+             data.status == 'active' &&
+             data.verifiedByAdminEmail == 'administracionmycapacitamaq@gmail.com' &&
+             isOptionalString(data, 'description', 400) &&
+             isOptionalString(data, 'operatorName', 100) &&
+             isOptionalString(data, 'operatorRole', 100) &&
+             isOptionalString(data, 'equipment', 100) &&
+             isOptionalString(data, 'expiresAt', 20) &&
+             isOptionalString(data, 'whatsapp', 40) &&
+             isOptionalString(data, 'email', 120) &&
+             isOptionalHex(data, 'themeColor') &&
+             isOptionalHex(data, 'backgroundColor') &&
+             isOptionalHex(data, 'cardColor');
+    }
+
+    match /public_certificates/{certificateCode} {
+      // Public single-document verification by exact certificateCode only; never allow listing/scraping
+      allow get: if isValidId(certificateCode) &&
+                    resource.data.status == 'active' &&
+                    resource.data.verifiedByAdminEmail == 'administracionmycapacitamaq@gmail.com';
+      allow list: if isOfficialAdmin();
+
+      allow create, update: if isOfficialAdmin() &&
+                               isValidId(certificateCode) &&
+                               incoming().keys().hasAll([
+                                 'certificateCode', 'courseName', 'studentName', 'certificateType',
+                                 'issuer', 'issuedAt', 'status', 'verifiedByAdminEmail', 'updatedAt'
+                               ]) &&
+                               incoming().keys().hasOnly([
+                                 'certificateCode', 'courseName', 'description', 'studentName',
+                                 'studentRut', 'certificateType', 'operatorName', 'operatorRole',
+                                 'equipment', 'issuer', 'issuedAt', 'expiresAt', 'status',
+                                 'whatsapp', 'email', 'verifiedByAdminEmail', 'themeColor',
+                                 'backgroundColor', 'cardColor', 'updatedAt'
+                               ]) &&
+                               incoming().updatedAt is timestamp &&
+                               incoming().updatedAt <= request.time &&
+                               isValidPublicCertificate(incoming(), certificateCode);
+
+      allow delete: if isOfficialAdmin() && isValidId(certificateCode);
+    }
+
+    // Legacy admin subcollection retained solely for one-time read & cleanup migration
+    match /users/{userId}/certificates/{certificateId} {
+      allow get, list, delete: if isOfficialAdmin() && isOwner(userId);
+    }
+  }
+}

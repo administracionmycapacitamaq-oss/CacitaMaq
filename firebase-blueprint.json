@@ -1,0 +1,314 @@
+{
+  "entities": {
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Certificación verificable de CapacitaMaq emitida exclusivamente por el administrador oficial.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID de Firebase Auth del administrador emisor."
+        },
+        "certificateCode": {
+          "type": "string",
+          "description": "Identificador público único del certificado (ej. CERTIFICACION-CM-...)."
+        },
+        "courseName": {
+          "type": "string",
+          "description": "Título de la certificación o curso."
+        },
+        "description": {
+          "type": "string",
+          "description": "Texto de validación pública del certificado."
+        },
+        "studentName": {
+          "type": "string",
+          "description": "Nombre completo del alumno certificado."
+        },
+        "studentRut": {
+          "type": "string",
+          "description": "RUT del alumno certificado (ej. 12.345.678-9)."
+        },
+        "studentEmail": {
+          "type": "string",
+          "description": "Correo Google autorizado del alumno (minúsculas) para ver su certificado."
+        },
+        "verifiedByAdminEmail": {
+          "type": "string",
+          "description": "Correo oficial del administrador autorizador (administracionmycapacitamaq@gmail.com)."
+        },
+        "certificateType": {
+          "type": "string",
+          "description": "Tipo de certificación."
+        },
+        "operatorName": {
+          "type": "string",
+          "description": "Nombre completo del operador certificador."
+        },
+        "operatorRole": {
+          "type": "string",
+          "description": "Cargo del operador certificador."
+        },
+        "operatorIdentifier": {
+          "type": "string",
+          "description": "Identificador interno del operador."
+        },
+        "equipment": {
+          "type": "string",
+          "description": "Equipo o maquinaria certificada."
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Entidad certificadora."
+        },
+        "issuedAt": {
+          "type": "string",
+          "description": "Fecha de emisión en formato yyyy-MM-dd."
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Fecha de vencimiento opcional en formato yyyy-MM-dd."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "pending", "invalid"],
+          "description": "Estado de publicación del certificado."
+        },
+        "issuerUrl": {
+          "type": "string",
+          "description": "Enlace informativo opcional de la empresa."
+        },
+        "whatsapp": {
+          "type": "string",
+          "description": "Teléfono WhatsApp corporativo."
+        },
+        "email": {
+          "type": "string",
+          "description": "Correo electrónico corporativo."
+        },
+        "themeColor": {
+          "type": "string",
+          "description": "Color hexadecimal de cabecera (#RRGGBB)."
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Color hexadecimal de fondo (#RRGGBB)."
+        },
+        "cardColor": {
+          "type": "string",
+          "description": "Color hexadecimal de tarjetas internas (#RRGGBB)."
+        },
+        "fontChoice": {
+          "type": "string",
+          "enum": ["Manrope", "DM Sans", "Arial", "Georgia"],
+          "description": "Tipografía seleccionada."
+        },
+        "template": {
+          "type": "string",
+          "enum": ["classic", "modern", "minimal"],
+          "description": "Plantilla de distribución de la credencial."
+        },
+        "qrColor": {
+          "type": "string",
+          "description": "Color hexadecimal del código QR (#RRGGBB)."
+        },
+        "qrPattern": {
+          "type": "string",
+          "enum": ["square", "soft", "frame"],
+          "description": "Estilo de marco del código QR."
+        },
+        "qrCaption": {
+          "type": "string",
+          "description": "Texto mostrado debajo del código QR."
+        },
+        "logoPath": {
+          "type": "string",
+          "description": "Ruta local del logo circular personalizado."
+        },
+        "companyImagePath": {
+          "type": "string",
+          "description": "Ruta local de la imagen corporativa."
+        },
+        "operatorPhotoPath": {
+          "type": "string",
+          "description": "Ruta local de la foto del operador."
+        },
+        "scanCount": {
+          "type": "integer",
+          "description": "Cantidad de verificaciones registradas."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Marca temporal de creación."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Marca temporal de actualización."
+        }
+      },
+      "required": [
+        "userId",
+        "certificateCode",
+        "courseName",
+        "certificateType",
+        "studentName",
+        "issuer",
+        "issuedAt",
+        "status",
+        "scanCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Solicitud y perfil verificado de un alumno con Nombre Completo, RUT y correo Google bajo aprobación del administrador oficial.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "UID de Firebase Auth del alumno."
+        },
+        "email": {
+          "type": "string",
+          "description": "Correo electrónico Google del alumno en minúsculas."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Nombre completo del alumno."
+        },
+        "rut": {
+          "type": "string",
+          "description": "RUT chileno del alumno."
+        },
+        "verificationStatus": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"],
+          "description": "Estado de comprobación por el administrador oficial."
+        },
+        "approvedByEmail": {
+          "type": "string",
+          "description": "Correo oficial del administrador que aprobó al alumno."
+        },
+        "adminNote": {
+          "type": "string",
+          "description": "Observación opcional del administrador."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "fullName",
+        "rut",
+        "verificationStatus",
+        "approvedByEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "VerifierConfig": {
+      "title": "VerifierConfig",
+      "description": "Configuración de la URL pública del verificador web administrada por el administrador oficial.",
+      "type": "object",
+      "properties": {
+        "verifierBaseUrl": {
+          "type": "string",
+          "description": "URL https:// donde está alojado el verificador web HTML."
+        },
+        "updatedByEmail": {
+          "type": "string",
+          "description": "Correo oficial del administrador que actualizó la configuración."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "verifierBaseUrl",
+        "updatedByEmail",
+        "updatedAt"
+      ]
+    },
+    "PublicCertificate": {
+      "title": "PublicCertificate",
+      "description": "Registro público de verificación en tiempo real publicado automáticamente por el administrador oficial.",
+      "type": "object",
+      "properties": {
+        "certificateCode": { "type": "string" },
+        "courseName": { "type": "string" },
+        "description": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentRut": { "type": "string" },
+        "certificateType": { "type": "string" },
+        "operatorName": { "type": "string" },
+        "operatorRole": { "type": "string" },
+        "equipment": { "type": "string" },
+        "issuer": { "type": "string" },
+        "issuedAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["active"] },
+        "whatsapp": { "type": "string" },
+        "email": { "type": "string" },
+        "verifiedByAdminEmail": { "type": "string" },
+        "themeColor": { "type": "string" },
+        "backgroundColor": { "type": "string" },
+        "cardColor": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "certificateCode",
+        "courseName",
+        "studentName",
+        "certificateType",
+        "issuer",
+        "issuedAt",
+        "status",
+        "verifiedByAdminEmail",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/certificates/{certificateId}": {
+      "schema": {
+        "$ref": "#/entities/Certificate"
+      },
+      "description": "Certificados creados y editados únicamente por el administrador oficial administracionmycapacitamaq@gmail.com; los alumnos aprobados solo leen los propios."
+    },
+    "/public_certificates/{certificateCode}": {
+      "schema": {
+        "$ref": "#/entities/PublicCertificate"
+      },
+      "description": "Índice público de lectura individual por código exacto para verificación web en tiempo real."
+    },
+    "/student_profiles/{userId}": {
+      "schema": {
+        "$ref": "#/entities/StudentProfile"
+      },
+      "description": "Perfiles de alumnos sujetos a comprobación por Nombre Completo y RUT por el administrador oficial."
+    },
+    "/app_config/{configId}": {
+      "schema": {
+        "$ref": "#/entities/VerifierConfig"
+      },
+      "description": "Configuración pública de lectura para usuarios autenticados y escritura exclusiva del administrador oficial."
+    },
+    "/users/{userId}/certificates/{certificateId}": {
+      "schema": {
+        "$ref": "#/entities/Certificate"
+      },
+      "description": "Colección heredada para migración transparente de certificados creados previamente por el administrador."
+    }
+  }
+}

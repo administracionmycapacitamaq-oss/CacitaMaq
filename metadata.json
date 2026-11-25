@@ -1,0 +1,6 @@
+{
+  "name": "Capacitamaq",
+  "description": "Gestión de certificaciones y verificación de códigos QR para capacitación minera y operacional.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
